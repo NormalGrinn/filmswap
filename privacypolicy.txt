@@ -1,0 +1,35 @@
+Privacy Policy for FilmSwap v2
+
+This Privacy Policy governs the collection, use, and sharing of personal information by FilmSwap v2, a Discord bot developed by NormalGrinn. By using FilmSwap v2, you agree to the terms of this Privacy Policy.
+
+Information We Collect
+
+We collect information that you provide to us through your use of the bot, such as your Discord user ID and username when you join the event and the messages you write using the bot's commands.
+
+How We Use Your Information
+
+We use your information to run FilmSwap v2, using your ID as an identifier in our database and using your name as to sign of who you are. We store the messages you write using /write_letter, and /submit. Other messages will be directly sent by the bot and not stored in the database.
+
+Sharing Your Information
+
+We do not sell or share your personal information with third parties. However, we may disclose your information in response to legal process or a request from a law enforcement agency or regulatory authority.
+
+Data Retention
+
+We retain your information for as long as necessary to provide FilmSwap v2’s services or as required by law. We will delete your information upon your request or when it is no longer needed.
+
+Data Security
+
+We take reasonable measures to protect your information from unauthorized access, alteration, or destruction. However, no security measure is perfect, and we cannot guarantee the security of your information.
+
+Changes to this Policy
+
+We may update this Privacy Policy from time to time, and we will post the updated policy on our website. Your continued use of [Bot Name] after we make changes to this policy indicates your acceptance of the revised policy.
+
+Contact Us
+
+If you have any questions or concerns about this Privacy Policy, please contact us at normalgrinn@gmail.com.
+
+Effective Date
+
+This Privacy Policy is effective as of 22-07-2026.
