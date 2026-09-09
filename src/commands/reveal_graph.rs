@@ -8,7 +8,6 @@ use petgraph::Graph;
 use petgraph::graph::NodeIndex;
 use petgraph::dot::{Dot, Config};
 use std::process::Command;
-use rand::Rng;
 #[poise::command(prefix_command, slash_command)]
 pub async fn reveal_graph(
     ctx: Context<'_>,
@@ -40,6 +39,7 @@ pub async fn reveal_graph(
     let mut graph = Graph::<&str, &str>::new();
     let mut user_nodes: Vec<NodeIndex> = Vec::new();
     let mut edges: Vec<(NodeIndex, NodeIndex)> = Vec::new();
+    let mut layout = layout;
     // create nodes on the graph then store in user_nodes vector
     users.iter()
         .for_each(|user| {
@@ -66,18 +66,18 @@ pub async fn reveal_graph(
             return Ok(());
         }   
     }
-    let mut layout = layout;
+ 
     match layout {
-        GraphLayout::default => layout = GraphLayout::circo,
-        GraphLayout::random => {
+        GraphLayout::Default => layout = GraphLayout::Circo,
+        GraphLayout::Random => {
             let layouts = [
-                GraphLayout::dot,
-                GraphLayout::neato,
-                GraphLayout::fdp,
-                GraphLayout::circo,
-                GraphLayout::twopi,
-                GraphLayout::osage,
-                GraphLayout::patchwork,
+                GraphLayout::Dot,
+                GraphLayout::Neato,
+                GraphLayout::Fdp,
+                GraphLayout::Circo,
+                GraphLayout::Twopi,
+                GraphLayout::Osage,
+                GraphLayout::Patchwork,
                 ];
             layout = layouts[rand::random_range(0..layouts.len())];
         }
@@ -85,7 +85,7 @@ pub async fn reveal_graph(
     }   
     let message = format!("heres the graph :happy: ({:?})", layout);
 
-    Command::new(format!("{:?}",layout))
+    Command::new(format!("{:?}",layout).to_lowercase())
         .args(["-Tpng", "graph.dot", "-o", "graph.png", "-Nshape=none"])
         .status()
         .expect("failed to run graphviz `dot` — is it installed?");

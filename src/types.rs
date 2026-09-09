@@ -28,17 +28,17 @@ pub enum Phase {
     Swap,
     Watch
 }
-#[derive(Debug, Clone, Copy, PartialEq, ChoiceParameter)]
+#[derive(Debug, PartialEq, ChoiceParameter, Copy, Clone)]
 pub enum GraphLayout {
-    dot,
-    neato,
-    fdp,
-    circo,
-    twopi,
-    osage,
-    patchwork,
-    default, //circo
-    random,
+    Dot,
+    Neato,
+    Fdp,
+    Circo,
+    Twopi,
+    Osage,
+    Patchwork,
+    Default, //circo
+    Random,
 }
 
 impl Phase {
