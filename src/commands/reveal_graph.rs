@@ -61,10 +61,11 @@ pub async fn reveal_graph(
         "osage", // crazy, likely the best for the fun graphs
         "patchwork" // like a grid/ window
         ];
+
     Command::new("circo")
-    .args(["-Tpng", "graph.dot", "-o", "graph.png", "-Nshape=none"])
-    .status()
-    .expect("failed to run graphviz `dot` — is it installed?");
+        .args(["-Tpng", "graph.dot", "-o", "graph.png", "-Nshape=none"])
+        .status()
+        .expect("failed to run graphviz `dot` — is it installed?");
     //TODO: implement way for host to ask for a random one or just give a random one lol.
     let message = format!("heres the graph :happy:");
     
