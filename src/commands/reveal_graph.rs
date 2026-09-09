@@ -93,5 +93,7 @@ pub async fn reveal_graph(
             .await?;
         }
     }
+    tokio::fs::remove_file("graph.png").await?;
+    tokio::fs::remove_file("graph.dot").await?;
     Ok(())
 }
