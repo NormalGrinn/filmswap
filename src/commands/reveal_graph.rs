@@ -15,6 +15,7 @@ pub async fn reveal_graph(
     #[description = "Graph layout"]
     layout: GraphLayout,
 ) -> Result<(), Error> {
+
     if !ensure_host_role(&ctx, ctx.author()).await? {
         return Ok(());
     }
@@ -37,55 +38,77 @@ pub async fn reveal_graph(
     };
 
     let mut graph = Graph::<&str, &str>::new();
-
     let mut user_nodes: Vec<NodeIndex> = Vec::new();
-
-    for user in users.iter() {
-        user_nodes.push(graph.add_node(user.1.as_str()));
-    }
-    // create edges
     let mut edges: Vec<(NodeIndex, NodeIndex)> = Vec::new();
-    // connect users sequenitally then wrap last user.
+    // create nodes on the graph then store in user_nodes vector
+    users.iter()
+        .for_each(|user| {
+            user_nodes.push(graph.add_node(user.1.as_str()));
+        });
+    //connect the nodes
     for i in 0..user_nodes.len() {
         edges.push((user_nodes[i], user_nodes[(i + 1) % user_nodes.len()]));
     }
     // add edges to graph
     graph.extend_with_edges(&edges);
+
+    {
         let dot_output = format!("{}", Dot::with_config(&graph, &[Config::EdgeNoLabel]));
-
-    std::fs::write("graph.dot", &dot_output).unwrap();
-
-    
+        
+        if let Err(e) = std::fs::write("graph.dot", &dot_output) {
+            eprintln!("Error writing graph to file: {}", e);
+            ctx.send(
+                CreateReply::default()
+                    .content("There was a problem with generating the graph dot file")
+                    .ephemeral(true),
+            )
+            .await?;
+            return Ok(());
+        }   
+    }
     let mut layout = layout;
-    if format!("{:?}", layout) == "default" {
-        layout = GraphLayout::circo;
-    }
-    if format!("{:?}", layout) == "random" {
-        let layouts = [
-            GraphLayout::dot,
-            GraphLayout::neato,
-            GraphLayout::fdp,
-            GraphLayout::circo,
-            GraphLayout::twopi,
-            GraphLayout::osage,
-            GraphLayout::patchwork,
-            ];
-            
+    match layout {
+        GraphLayout::default => layout = GraphLayout::circo,
+        GraphLayout::random => {
+            let layouts = [
+                GraphLayout::dot,
+                GraphLayout::neato,
+                GraphLayout::fdp,
+                GraphLayout::circo,
+                GraphLayout::twopi,
+                GraphLayout::osage,
+                GraphLayout::patchwork,
+                ];
             layout = layouts[rand::random_range(0..layouts.len())];
-    }
+        }
+        _ => {}
+    }   
     let message = format!("heres the graph :happy: ({:?})", layout);
-    println!("Using layout: {:?}", layout);
+
     Command::new(format!("{:?}",layout))
         .args(["-Tpng", "graph.dot", "-o", "graph.png", "-Nshape=none"])
         .status()
         .expect("failed to run graphviz `dot` — is it installed?");
-    //TODO: implement way for host to ask for a random one or just give a random one lol.
     
+
+    let attachment = match CreateAttachment::path("graph.png").await {
+        Ok(attachment) => attachment,
+        Err(e) => {
+            eprintln!("Error creating attachment: {}", e);
+            ctx.send(
+                CreateReply::default()
+                    .content("Couldnt create graph attachment")
+                    .ephemeral(true),
+            )
+            .await?;
+            return Ok(());
+        }
+    };
     match ctx.author().direct_message(
         ctx.http(),
         CreateMessage::new()
             .content(message)
-            .add_file(CreateAttachment::path("graph.png").await.unwrap()),
+            .add_file(attachment),
     ).await {
         Ok(_) => {
             ctx.send(
