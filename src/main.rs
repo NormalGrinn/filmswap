@@ -22,7 +22,7 @@ async fn main() {
     let token = env::var("TOKEN")
         .expect("Missing `TOKEN` env var, see README for more information.");
     let intents =
-        serenity::GatewayIntents::non_privileged() 
+        serenity::GatewayIntents::non_privileged()
         | serenity::GatewayIntents::MESSAGE_CONTENT;
     let data = Data {
         pending_users: Arc::new(Mutex::new(HashSet::new())),
