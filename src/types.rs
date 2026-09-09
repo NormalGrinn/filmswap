@@ -28,7 +28,18 @@ pub enum Phase {
     Swap,
     Watch
 }
-
+#[derive(Debug, Clone, Copy, PartialEq, ChoiceParameter)]
+pub enum GraphLayout {
+    dot,
+    neato,
+    fdp,
+    circo,
+    twopi,
+    osage,
+    patchwork,
+    default, //circo
+    random,
+}
 
 impl Phase {
     pub fn as_str(&self) -> &'static str {

@@ -1,5 +1,5 @@
 use crate::{
-    Context, Error, database, types::Phase, utilities::ensure_host_role,
+    Context, Error, database, types::Phase, utilities::ensure_host_role,types::GraphLayout
 };
 use poise::CreateReply;
 use rusqlite::Result;
@@ -11,6 +11,8 @@ use std::process::Command;
 #[poise::command(prefix_command, slash_command)]
 pub async fn reveal_graph(
     ctx: Context<'_>,
+    #[description = "Graph layout"]
+    layout: GraphLayout,
 ) -> Result<(), Error> {
     if !ensure_host_role(&ctx, ctx.author()).await? {
         return Ok(());
@@ -52,17 +54,13 @@ pub async fn reveal_graph(
 
     std::fs::write("graph.dot", &dot_output).unwrap();
 
-    let options = [
-        "dot", // bannana
-        "neato", // circle, but at bottom its kinda like a header.
-        "fdp", // side ways ping pong racket kinda
-        "circo", // circle, likely the most ideal
-        "twopi", // a vertical line 
-        "osage", // crazy, likely the best for the fun graphs
-        "patchwork" // like a grid/ window
-        ];
 
-    Command::new("circo")
+    let mut layout = layout;
+    if format!("{:?}", layout) == "default" {
+        layout = GraphLayout::circo;
+    }
+    println!("Using layout: {:?}", layout);
+    Command::new(format!("{:?}",layout))
         .args(["-Tpng", "graph.dot", "-o", "graph.png", "-Nshape=none"])
         .status()
         .expect("failed to run graphviz `dot` — is it installed?");
