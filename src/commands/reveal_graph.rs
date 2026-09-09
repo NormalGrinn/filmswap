@@ -7,12 +7,12 @@ use serenity::all::{ CreateMessage, CreateAttachment };
 use petgraph::Graph;
 use petgraph::graph::NodeIndex;
 use petgraph::dot::{Dot, Config};
-use std::process::Command;
+use tokio::process::Command as TokioCommand;
 #[poise::command(prefix_command, slash_command)]
 pub async fn reveal_graph(
     ctx: Context<'_>,
     #[description = "Graph layout"]
-    layout: GraphLayout,
+    mut layout: GraphLayout,
 ) -> Result<(), Error> {
 
     if !ensure_host_role(&ctx, ctx.author()).await? {
@@ -39,8 +39,7 @@ pub async fn reveal_graph(
     let mut graph = Graph::<&str, &str>::new();
     let mut user_nodes: Vec<NodeIndex> = Vec::new();
     let mut edges: Vec<(NodeIndex, NodeIndex)> = Vec::new();
-    let mut layout = layout;
-    // create nodes on the graph then store in user_nodes vector
+    // create nodes on the grapmut layout: GraphLayout in the function signature.h then store in user_nodes vector
     users.iter()
         .for_each(|user| {
             user_nodes.push(graph.add_node(user.1.as_str()));
@@ -52,6 +51,7 @@ pub async fn reveal_graph(
     // add edges to graph
     graph.extend_with_edges(&edges);
 
+    //create dot file
     {
         let dot_output = format!("{}", Dot::with_config(&graph, &[Config::EdgeNoLabel]));
         
@@ -85,11 +85,21 @@ pub async fn reveal_graph(
     }   
     let message = format!("heres the graph :happy: ({:?})", layout);
 
-    Command::new(format!("{:?}",layout).to_lowercase())
+    let status = TokioCommand::new(format!("{:?}", layout).to_lowercase())
         .args(["-Tpng", "graph.dot", "-o", "graph.png", "-Nshape=none"])
         .status()
-        .expect("failed to run graphviz `dot` — is it installed?");
-    
+        .await;
+
+    if let Err(e) = status {
+        eprintln!("Command failed: {}", e);
+        ctx.send(
+            CreateReply::default()
+                .content("Command failed, feature may not be available")
+                .ephemeral(true),
+        )
+        .await?;
+        return Ok(());
+    }
 
     let attachment = match CreateAttachment::path("graph.png").await {
         Ok(attachment) => attachment,
