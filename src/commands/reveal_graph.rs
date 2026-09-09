@@ -14,12 +14,10 @@ pub async fn reveal_graph(
     #[description = "Graph layout"]
     mut layout: GraphLayout,
 ) -> Result<(), Error> {
-
     if !ensure_host_role(&ctx, ctx.author()).await? {
         return Ok(());
     }
     if !crate::utilities::ensure_correct_phase(&ctx, vec![Phase::Swap, Phase::Watch]).await? {return Ok(())}
-    
     let users = match database::get_matching_order() {
         Ok(users) => users,
         Err(e) => {
@@ -39,16 +37,16 @@ pub async fn reveal_graph(
     let mut graph = Graph::<&str, &str>::new();
     let mut user_nodes: Vec<NodeIndex> = Vec::new();
     let mut edges: Vec<(NodeIndex, NodeIndex)> = Vec::new();
-    // create nodes on the grapmut layout: GraphLayout in the function signature.h then store in user_nodes vector
+    // create node - store in user_nodes
     users.iter()
         .for_each(|user| {
             user_nodes.push(graph.add_node(user.1.as_str()));
         });
-    //connect the nodes
+    //create edges 
     for i in 0..user_nodes.len() {
         edges.push((user_nodes[i], user_nodes[(i + 1) % user_nodes.len()]));
     }
-    // add edges to graph
+    // push edges to graph
     graph.extend_with_edges(&edges);
 
     //create dot file
@@ -63,12 +61,13 @@ pub async fn reveal_graph(
                     .ephemeral(true),
             )
             .await?;
+            tokio::fs::remove_file("graph.dot").await?;
             return Ok(());
         }   
     }
  
-    match layout {
-        GraphLayout::Default => layout = GraphLayout::Circo,
+    layout = match layout {
+        GraphLayout::Default => GraphLayout::Circo,
         GraphLayout::Random => {
             let layouts = [
                 GraphLayout::Dot,
@@ -79,9 +78,9 @@ pub async fn reveal_graph(
                 GraphLayout::Osage,
                 GraphLayout::Patchwork,
                 ];
-            layout = layouts[rand::random_range(0..layouts.len())];
+             layouts[rand::random_range(0..layouts.len())]
         }
-        _ => {}
+        _ => { layout }
     }   
     let message = format!("heres the graph :happy: ({:?})", layout);
 
@@ -98,6 +97,7 @@ pub async fn reveal_graph(
                 .ephemeral(true),
         )
         .await?;
+        tokio::fs::remove_file("graph.png").await?;
         return Ok(());
     }
 
