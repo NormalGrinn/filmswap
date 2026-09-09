@@ -1,8 +1,0 @@
-digraph {
-    0 [ label = "coffeee3_" ]
-    1 [ label = "abyssofd" ]
-    2 [ label = "acoffeee" ]
-    0 -> 1 [ ]
-    1 -> 2 [ ]
-    2 -> 0 [ ]
-}

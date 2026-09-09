@@ -8,6 +8,7 @@ use petgraph::Graph;
 use petgraph::graph::NodeIndex;
 use petgraph::dot::{Dot, Config};
 use std::process::Command;
+use rand::Rng;
 #[poise::command(prefix_command, slash_command)]
 pub async fn reveal_graph(
     ctx: Context<'_>,
@@ -54,18 +55,31 @@ pub async fn reveal_graph(
 
     std::fs::write("graph.dot", &dot_output).unwrap();
 
-
+    
     let mut layout = layout;
     if format!("{:?}", layout) == "default" {
         layout = GraphLayout::circo;
     }
+    if format!("{:?}", layout) == "random" {
+        let layouts = [
+            GraphLayout::dot,
+            GraphLayout::neato,
+            GraphLayout::fdp,
+            GraphLayout::circo,
+            GraphLayout::twopi,
+            GraphLayout::osage,
+            GraphLayout::patchwork,
+            ];
+            
+            layout = layouts[rand::random_range(0..layouts.len())];
+    }
+    let message = format!("heres the graph :happy: ({:?})", layout);
     println!("Using layout: {:?}", layout);
     Command::new(format!("{:?}",layout))
         .args(["-Tpng", "graph.dot", "-o", "graph.png", "-Nshape=none"])
         .status()
         .expect("failed to run graphviz `dot` — is it installed?");
     //TODO: implement way for host to ask for a random one or just give a random one lol.
-    let message = format!("heres the graph :happy:");
     
     match ctx.author().direct_message(
         ctx.http(),
