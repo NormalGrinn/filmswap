@@ -23,7 +23,7 @@ async fn main() {
         .expect("Missing `TOKEN` env var, see README for more information.");
     let intents =
         serenity::GatewayIntents::non_privileged()
-        | serenity::GatewayIntents::MESSAGE_CONTENT;
+        | serenity::GatewayIntents::MESSAGE_CONTENT; 
     let data = Data {
         pending_users: Arc::new(Mutex::new(HashSet::new())),
     };
@@ -47,6 +47,7 @@ async fn main() {
                 commands::ban_user::ban_user(),
                 commands::unban_user::unban_user(),
                 commands::reveal::reveal(),
+                commands::reveal_graph::reveal_graph()
             ],
             event_handler: |ctx, event, framework, data| {
                 Box::pin(components::button_interaction::on_component_interaction(ctx, event, framework, data))

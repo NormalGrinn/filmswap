@@ -14,3 +14,4 @@ pub mod unmatch_users;
 pub mod ban_user;
 pub mod unban_user;
 pub mod reveal;
+pub mod reveal_graph;

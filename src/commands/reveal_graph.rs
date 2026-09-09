@@ -1,9 +1,9 @@
 use crate::{
     Context, Error, database, types::Phase, utilities::ensure_host_role,
-}
+};
 use poise::CreateReply;
 use rusqlite::Result;
-use serenity::all::CreateMessage;
+use serenity::all::{ CreateMessage, CreateAttachment };
 use petgraph::Graph;
 use petgraph::graph::NodeIndex;
 use petgraph::dot::{Dot, Config};
@@ -67,9 +67,12 @@ pub async fn reveal_graph(
     .expect("failed to run graphviz `dot` — is it installed?");
     //TODO: implement way for host to ask for a random one or just give a random one lol.
     let message = format!("heres the graph :happy:");
+    
     match ctx.author().direct_message(
         ctx.http(),
-        CreateMessage::new().content(message).add_file("graph.png"),
+        CreateMessage::new()
+            .content(message)
+            .add_file(CreateAttachment::path("graph.png").await.unwrap()),
     ).await {
         Ok(_) => {
             ctx.send(

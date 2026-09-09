@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 dotenvy = "0.15.7"
+petgraph = "0.8.3"
 poise = "0.6.2"
 rusqlite = "0.39.0"
 serde = "1.0.229"
