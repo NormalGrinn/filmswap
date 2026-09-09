@@ -81,15 +81,14 @@ pub async fn reveal_graph(
              layouts[rand::random_range(0..layouts.len())]
         }
         _ => { layout }
-    }   
+    };
     let message = format!("heres the graph :happy: ({:?})", layout);
-
-    let status = TokioCommand::new(format!("{:?}", layout).to_lowercase())
+    let graph_creation_status = TokioCommand::new(format!("{:?}", layout).to_lowercase())
         .args(["-Tpng", "graph.dot", "-o", "graph.png", "-Nshape=none"])
         .status()
         .await;
 
-    if let Err(e) = status {
+    if let Err(e) = graph_creation_status {
         eprintln!("Command failed: {}", e);
         ctx.send(
             CreateReply::default()
