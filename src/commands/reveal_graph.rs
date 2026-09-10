@@ -108,7 +108,7 @@ pub async fn reveal_graph(
     let graph_data = match graphviz_result {
         Ok(output) => output,
         Err(e) => {
-            eprintln!("Error after running graphviz");
+            eprintln!("Error after running graphviz: {:?}", e);
             ctx.send(
                 CreateReply::default()
                     .content("Graph not created correctly")
