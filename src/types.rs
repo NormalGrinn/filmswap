@@ -26,7 +26,7 @@ pub struct UserInfo {
 pub enum Phase {
     Join,
     Swap,
-    Watch
+    Watch,
 }
 #[derive(Debug, PartialEq, ChoiceParameter, Copy, Clone)]
 pub enum GraphLayout {

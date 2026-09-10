@@ -1,18 +1,16 @@
-use crate::{
-    Context, Error, database, types::Phase, utilities::ensure_host_role,
-};
+use crate::{Context, Error, database, types::Phase, utilities::ensure_host_role};
 use poise::CreateReply;
 use rusqlite::Result;
 use serenity::all::CreateMessage;
 
 #[poise::command(prefix_command, track_edits, slash_command)]
-pub async fn reveal(
-    ctx: Context<'_>,
-) -> Result<(), Error> {
+pub async fn reveal(ctx: Context<'_>) -> Result<(), Error> {
     if !ensure_host_role(&ctx, ctx.author()).await? {
         return Ok(());
     }
-    if !crate::utilities::ensure_correct_phase(&ctx, vec![Phase::Swap, Phase::Watch]).await? {return Ok(())}
+    if !crate::utilities::ensure_correct_phase(&ctx, vec![Phase::Swap, Phase::Watch]).await? {
+        return Ok(());
+    }
 
     let users = match database::get_matching_order() {
         Ok(users) => users,
@@ -40,15 +38,13 @@ pub async fn reveal(
         reveal_message.push_str(&format!(" -> `{}`", first_username));
     }
 
-    let message = format!(
-        "The current matching order is:\n\n{}",
-        reveal_message
-    );
+    let message = format!("The current matching order is:\n\n{}", reveal_message);
 
-    match ctx.author().direct_message(
-        ctx.http(),
-        CreateMessage::new().content(message),
-    ).await {
+    match ctx
+        .author()
+        .direct_message(ctx.http(), CreateMessage::new().content(message))
+        .await
+    {
         Ok(_) => {
             ctx.send(
                 CreateReply::default()
