@@ -96,6 +96,7 @@ pub async fn reveal_graph(
                 .ephemeral(true),
         )
         .await?;
+        tokio::fs::remove_file("graph.dot").await?;
         tokio::fs::remove_file("graph.png").await?;
         return Ok(());
     }
@@ -110,6 +111,8 @@ pub async fn reveal_graph(
                     .ephemeral(true),
             )
             .await?;
+            tokio::fs::remove_file("graph.dot").await?;
+            tokio::fs::remove_file("graph.png").await?;
             return Ok(());
         }
     };
