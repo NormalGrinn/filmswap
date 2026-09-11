@@ -50,83 +50,44 @@ pub async fn reveal_graph(
             ];
             layouts[rand::random_range(0..layouts.len())]
         }
-        _ => layout,
+        _ => { layout }
     };
-    let mut graph = Graph::<&str, &str>::new();
-    let mut user_nodes: Vec<NodeIndex> = Vec::new();
-    let mut edges: Vec<(NodeIndex, NodeIndex)> = Vec::new();
-    // create node - store in user_nodes
-    users.iter().for_each(|user| {
-        user_nodes.push(graph.add_node(user.1.as_str()));
-    });
-    //create edges
-    for i in 0..user_nodes.len() {
-        edges.push((user_nodes[i], user_nodes[(i + 1) % user_nodes.len()]));
-    }
-    // push edges to graph
-    graph.extend_with_edges(&edges);
-    let dot_output = format!("{}", Dot::with_config(&graph, &[Config::EdgeNoLabel]));
     let message = format!("heres the graph :happy: ({:?})", layout);
+    let graph_creation_status = TokioCommand::new(format!("{:?}", layout).to_lowercase())
+        .args(["-Tpng", "graph.dot", "-o", "graph.png", "-Nshape=none"])
+        .status()
+        .await;
 
-    let mut graphviz_process = match TokioCommand::new(format!("{:?}", layout).to_lowercase())
-        .arg("-Tpng")
-        .arg("-Nshape=none")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-    {
-        Ok(process) => process,
-        Err(_) => {
-            ctx.send(
-                CreateReply::default()
-                    .content("Command failed, feature may not be available")
-                    .ephemeral(true),
-            )
-            .await?;
-            return Ok(());
-        }
-    };
-    let mut graphviz_stdin = graphviz_process.stdin.take().unwrap();
-    let write_future = async {
-        let future = graphviz_stdin.write_all(dot_output.as_bytes()).await;
-        drop(graphviz_stdin);
-        future
-    };
-    let graphviz_future = graphviz_process.wait_with_output();
-    let (write_result, graphviz_result) = tokio::join!(write_future, graphviz_future);
-    if let Err(e) = write_result {
-        eprintln!("Error writing to the graphviz pipe: {:?}", e);
+    if let Err(e) = graph_creation_status {
+        eprintln!("Command failed: {}", e);
         ctx.send(
             CreateReply::default()
-                .content("Error during graph creation")
+                .content("Command failed, feature may not be available")
                 .ephemeral(true),
         )
         .await?;
         return Ok(());
-    };
-    let graph_data = match graphviz_result {
-        Ok(output) => output,
+    }
+
+    let attachment = match CreateAttachment::path("graph.png").await {
+        Ok(attachment) => attachment,
         Err(e) => {
-            eprintln!("Error after running graphviz: {:?}", e);
+            eprintln!("Error creating attachment: {}", e);
             ctx.send(
                 CreateReply::default()
-                    .content("Graph not created correctly")
+                    .content("Couldnt create graph attachment")
                     .ephemeral(true),
             )
             .await?;
             return Ok(());
         }
     };
-    let attachment = CreateAttachment::bytes(graph_data.stdout, "graph.png");
-    match ctx
-        .author()
-        .direct_message(
-            ctx.http(),
-            CreateMessage::new().content(message).add_file(attachment),
-        )
-        .await
-    {
+    match ctx.author().direct_message(
+        ctx.http(),
+        CreateMessage::new()
+            .content(message)
+            .add_file(attachment),
+    ).await {
         Ok(_) => {
             ctx.send(
                 CreateReply::default()
