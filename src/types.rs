@@ -26,9 +26,20 @@ pub struct UserInfo {
 pub enum Phase {
     Join,
     Swap,
-    Watch
+    Watch,
 }
-
+#[derive(Debug, PartialEq, ChoiceParameter, Copy, Clone)]
+pub enum GraphLayout {
+    Dot,
+    Neato,
+    Fdp,
+    Circo,
+    Twopi,
+    Osage,
+    Patchwork,
+    Default, //circo
+    Random,
+}
 
 impl Phase {
     pub fn as_str(&self) -> &'static str {

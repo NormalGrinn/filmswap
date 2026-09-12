@@ -1,10 +1,4 @@
-use crate::{
-    Context,
-    Error,
-    database,
-    types::UserInfo,
-    utilities::ensure_host_role,
-};
+use crate::{Context, Error, database, types::UserInfo, utilities::ensure_host_role};
 use poise::CreateReply;
 use rusqlite::Result;
 use serenity::all::{CreateAttachment, CreateMessage};
@@ -13,9 +7,7 @@ use tokio::fs;
 const PATH: &str = "status.txt";
 
 #[poise::command(prefix_command, track_edits, slash_command)]
-pub async fn status(
-    ctx: Context<'_>,
-) -> Result<(), Error> {
+pub async fn status(ctx: Context<'_>) -> Result<(), Error> {
     if !ensure_host_role(&ctx, ctx.author()).await? {
         return Ok(());
     }
@@ -36,10 +28,7 @@ pub async fn status(
     };
 
     // Users who are banned.
-    let banned: Vec<&UserInfo> = users
-        .iter()
-        .filter(|user| user.is_banned)
-        .collect();
+    let banned: Vec<&UserInfo> = users.iter().filter(|user| user.is_banned).collect();
 
     // Users who have joined but have not written a letter.
     let joined_no_letter: Vec<&UserInfo> = users
@@ -58,31 +47,19 @@ pub async fn status(
     buffer.push_str("=== BANNED USERS ===\n");
 
     for user in banned {
-        buffer.push_str(&format!(
-            "{}, {}\n",
-            user.username,
-            user.discord_id
-        ));
+        buffer.push_str(&format!("{}, {}\n", user.username, user.discord_id));
     }
 
     buffer.push_str("\n=== JOINED USERS, LETTER NOT WRITTEN ===\n");
 
     for user in joined_no_letter {
-        buffer.push_str(&format!(
-            "{}, {}\n",
-            user.username,
-            user.discord_id
-        ));
+        buffer.push_str(&format!("{}, {}\n", user.username, user.discord_id));
     }
 
     buffer.push_str("\n=== JOINED USERS WITH LETTER ===\n");
 
     for user in joined {
-        buffer.push_str(&format!(
-            "{}, {}\n",
-            user.username,
-            user.discord_id
-        ));
+        buffer.push_str(&format!("{}, {}\n", user.username, user.discord_id));
     }
 
     fs::write(PATH, buffer).await?;
