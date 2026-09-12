@@ -55,7 +55,7 @@ pub async fn reveal_graph(
     let mut graph = Graph::<&str, &str>::new();
     let mut user_nodes: Vec<NodeIndex> = Vec::new();
     let mut edges: Vec<(NodeIndex, NodeIndex)> = Vec::new();
-    // create node - store in user_nodes
+    // create node on graph then store in user_nodes
     users.iter().for_each(|user| {
         user_nodes.push(graph.add_node(user.1.as_str()));
     });
@@ -73,7 +73,7 @@ pub async fn reveal_graph(
         .arg("-Nshape=none")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
+        .stderr(Stdio::inherit())
         .spawn()
     {
         Ok(process) => process,
@@ -88,36 +88,39 @@ pub async fn reveal_graph(
         }
     };
     let mut graphviz_stdin = graphviz_process.stdin.take().unwrap();
-    let write_future = async {
-        let future = graphviz_stdin.write_all(dot_output.as_bytes()).await;
-        drop(graphviz_stdin);
-        future
-    };
-    let graphviz_future = graphviz_process.wait_with_output();
-    let (write_result, graphviz_result) = tokio::join!(write_future, graphviz_future);
-    if let Err(e) = write_result {
-        eprintln!("Error writing to the graphviz pipe: {:?}", e);
+    if let Err(e) = graphviz_stdin.write_all(dot_output.as_bytes()).await {
+        eprintln!("Error: {:?}", e);
         ctx.send(
             CreateReply::default()
-                .content("Error during graph creation")
+                .content("Failed to execute command")
                 .ephemeral(true),
         )
         .await?;
         return Ok(());
     };
-    let graph_data = match graphviz_result {
-        Ok(output) => output,
+    drop(graphviz_stdin);
+    let graph_data = match graphviz_process.wait_with_output().await {
+        Ok(data) => data,
         Err(e) => {
-            eprintln!("Error after running graphviz: {:?}", e);
+            eprintln!("Error: {:?}", e);
             ctx.send(
                 CreateReply::default()
-                    .content("Graph not created correctly")
+                    .content("Command failed")
                     .ephemeral(true),
             )
             .await?;
             return Ok(());
         }
     };
+    if !graph_data.status.success() {
+        ctx.send(
+            CreateReply::default()
+                .content("Command failed")
+                .ephemeral(true),
+        )
+        .await?;
+        return Ok(());
+    }
     let attachment = CreateAttachment::bytes(graph_data.stdout, "graph.png");
     match ctx
         .author()
