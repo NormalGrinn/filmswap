@@ -42,6 +42,17 @@ pub async fn status(ctx: Context<'_>) -> Result<(), Error> {
         .filter(|user| user.letter.is_some() && user.has_joined)
         .collect();
 
+    // Users who have been matched with a giftee but have not submitted a gift yet.
+    let no_submission: Vec<&UserInfo> = users
+        .iter()
+        .filter(|user| {
+            user.has_joined
+                && !user.is_banned
+                && user.giftee_id.is_some()
+                && user.submission.is_none()
+        })
+        .collect();
+
     let mut buffer = String::new();
 
     buffer.push_str("=== BANNED USERS ===\n");
@@ -59,6 +70,12 @@ pub async fn status(ctx: Context<'_>) -> Result<(), Error> {
     buffer.push_str("\n=== JOINED USERS WITH LETTER ===\n");
 
     for user in joined {
+        buffer.push_str(&format!("{}, {}\n", user.username, user.discord_id));
+    }
+
+    buffer.push_str("\n=== GIFT NOT YET SUBMITTED ===\n");
+
+    for user in no_submission {
         buffer.push_str(&format!("{}, {}\n", user.username, user.discord_id));
     }
 
