@@ -1,6 +1,9 @@
 use crate::{
-    Context, Error, database, types::Phase, utilities::{
-        self, ensure_dm, ensure_embed_field_lenght, ensure_has_santa, ensure_joined, reject_if_already_running, wait_for_message_with_cancel
+    Context, Error, database,
+    types::Phase,
+    utilities::{
+        self, ensure_dm, ensure_embed_field_lenght, ensure_has_santa, ensure_joined,
+        reject_if_already_running, wait_for_message_with_cancel,
     },
 };
 use rusqlite::Result;

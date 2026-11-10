@@ -1,14 +1,14 @@
 use std::{collections::HashSet, env, sync::Arc};
 
-use poise::serenity_prelude as serenity;
 use dotenvy::dotenv;
+use poise::serenity_prelude as serenity;
 use tokio::sync::Mutex;
 
 mod commands;
-mod utilities;
-mod database;
 mod components;
+mod database;
 mod types;
+mod utilities;
 
 struct Data {
     pub pending_users: Arc<Mutex<HashSet<u64>>>,
@@ -19,11 +19,10 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 #[tokio::main]
 async fn main() {
     dotenv().ok();
-    let token = env::var("TOKEN")
-        .expect("Missing `TOKEN` env var, see README for more information.");
+    let token =
+        env::var("TOKEN").expect("Missing `TOKEN` env var, see README for more information.");
     let intents =
-        serenity::GatewayIntents::non_privileged() 
-        | serenity::GatewayIntents::MESSAGE_CONTENT;
+        serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
     let data = Data {
         pending_users: Arc::new(Mutex::new(HashSet::new())),
     };
@@ -47,9 +46,12 @@ async fn main() {
                 commands::ban_user::ban_user(),
                 commands::unban_user::unban_user(),
                 commands::reveal::reveal(),
+                commands::reveal_graph::reveal_graph(),
             ],
             event_handler: |ctx, event, framework, data| {
-                Box::pin(components::button_interaction::on_component_interaction(ctx, event, framework, data))
+                Box::pin(components::button_interaction::on_component_interaction(
+                    ctx, event, framework, data,
+                ))
             },
             ..Default::default()
         })

@@ -12,7 +12,7 @@ pub async fn get_userinfo_by_id(user_id: u64) -> Result<UserInfo> {
         eprintln!("Failed to open database: {}", e);
         e
     })?;
-    let res = conn.query_row(GET_USER, params![user_id as i64], |row|
+    let res = conn.query_row(GET_USER, params![user_id as i64], |row| {
         Ok(UserInfo {
             discord_id: row.get::<_, i64>(0)? as u64,
             username: row.get(1)?,
@@ -21,9 +21,8 @@ pub async fn get_userinfo_by_id(user_id: u64) -> Result<UserInfo> {
             giftee_id: row.get::<_, Option<i64>>(4)?.map(|id| id as u64),
             is_banned: row.get(5)?,
             has_joined: row.get(6)?,
-            
         })
-    )?;
+    })?;
     Ok(res)
 }
 
@@ -36,10 +35,11 @@ pub async fn create_user(username: &str, user_id: u64) -> Result<()> {
         eprintln!("Failed to open database: {}", e);
         e
     })?;
-    conn.execute(ADD_USER, params![user_id as i64, username, false, true]).map_err(|e| {
-        eprintln!("Problem adding user to database: {}", e);
-        e
-    })?;
+    conn.execute(ADD_USER, params![user_id as i64, username, false, true])
+        .map_err(|e| {
+            eprintln!("Problem adding user to database: {}", e);
+            e
+        })?;
     Ok(())
 }
 
@@ -53,7 +53,8 @@ pub async fn leave(user_id: u64) -> Result<()> {
         eprintln!("Failed to open database: {}", e);
         e
     })?;
-    conn.execute(DELETE_USER, params![user_id as i64]).expect("Error deleting user");
+    conn.execute(DELETE_USER, params![user_id as i64])
+        .expect("Error deleting user");
     Ok(())
 }
 
@@ -70,7 +71,7 @@ pub async fn set_letter(user_id: u64, letter_content: &str) -> Result<usize> {
     })?;
     let tx = conn.transaction()?;
     let updated = tx.execute(UPDATE_LETTER, params![letter_content, user_id as i64])?;
-    tx.commit()?; 
+    tx.commit()?;
 
     Ok(updated)
 }
@@ -117,10 +118,7 @@ pub async fn get_giftee_letter(santa_id: u64) -> Result<Option<String>> {
         e
     })?;
     let mut query = conn.prepare(GET_LETTER)?;
-    let letter = query.query_row(params![santa_id as i64], 
-        |row| 
-        Ok(row.get(0)?
-        ))?;
+    let letter = query.query_row(params![santa_id as i64], |row| Ok(row.get(0)?))?;
     Ok(letter)
 }
 
@@ -136,10 +134,7 @@ pub async fn get_giftee_name(santa_id: u64) -> Result<String> {
         e
     })?;
     let mut query = conn.prepare(GET_NAME)?;
-    let name = query.query_row(params![santa_id as i64], 
-        |row| 
-        Ok(row.get(0)?
-        ))?;
+    let name = query.query_row(params![santa_id as i64], |row| Ok(row.get(0)?))?;
     Ok(name)
 }
 
@@ -231,39 +226,40 @@ pub async fn get_all_users() -> Result<Vec<UserInfo>> {
         e
     })?;
 
-    let users = stmt.query_map([], |row| {
-        Ok(UserInfo {
-            discord_id: row.get::<_, i64>(0)? as u64,
-            username: row.get(1)?,
-            letter: row.get(2)?,
-            submission: row.get(3)?,
-            giftee_id: row.get::<_, Option<i64>>(4)?.map(|id| id as u64),
-            is_banned: row.get(5)?,
-            has_joined: row.get(6)?,
-            
+    let users = stmt
+        .query_map([], |row| {
+            Ok(UserInfo {
+                discord_id: row.get::<_, i64>(0)? as u64,
+                username: row.get(1)?,
+                letter: row.get(2)?,
+                submission: row.get(3)?,
+                giftee_id: row.get::<_, Option<i64>>(4)?.map(|id| id as u64),
+                is_banned: row.get(5)?,
+                has_joined: row.get(6)?,
+            })
         })
-    })
-    .map_err(|e| {
-        eprintln!("Failed to query users: {}", e);
-        e
-    })?
-    .filter_map(|r| r.ok())
-    .collect();
+        .map_err(|e| {
+            eprintln!("Failed to query users: {}", e);
+            e
+        })?
+        .filter_map(|r| r.ok())
+        .collect();
 
     Ok(users)
 }
-
 
 pub fn get_phase() -> rusqlite::Result<Phase> {
     let conn = Connection::open(PATH).map_err(|e| {
         eprintln!("Failed to open database: {}", e);
         e
     })?;
-    let value: Option<String> = conn.query_row(
-        "SELECT value FROM settings WHERE key = 'PHASE'",
-        [],
-        |row| row.get(0),
-    ).optional()?;
+    let value: Option<String> = conn
+        .query_row(
+            "SELECT value FROM settings WHERE key = 'PHASE'",
+            [],
+            |row| row.get(0),
+        )
+        .optional()?;
 
     Ok(value
         .and_then(|s| Phase::from_str(&s))
@@ -295,10 +291,7 @@ pub fn rejoin_user(user_id: u64) -> rusqlite::Result<()> {
         e
     })?;
 
-    let rows_updated = conn.execute(
-        sql,
-        rusqlite::params![user_id as i64],
-    )?;
+    let rows_updated = conn.execute(sql, rusqlite::params![user_id as i64])?;
 
     if rows_updated == 0 {
         eprintln!("No user found with Discord ID {}", user_id);
@@ -431,7 +424,6 @@ pub fn match_users() -> rusqlite::Result<()> {
 
     Ok(())
 }
-
 
 pub fn is_user_banned(user_id: u64) -> rusqlite::Result<bool> {
     let conn = Connection::open(PATH)?;
